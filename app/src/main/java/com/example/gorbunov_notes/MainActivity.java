@@ -21,6 +21,24 @@ public class MainActivity extends AppCompatActivity {
     private NotesAdapter adapter;
     private List<Note> noteList = new ArrayList<>();
 
+    private final ActivityResultLauncher<Intent> editNoteLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    int position = result.getData().getIntExtra("position", -1);
+                    String title = result.getData().getStringExtra("title");
+                    String desc = result.getData().getStringExtra("description");
+
+                    if (position != -1) {
+                        Note oldNote = noteList.get(position);
+                        Note updatedNote = new Note(oldNote.getId(), title, desc, oldNote.getDate());
+                        noteList.set(position, updatedNote);
+                        adapter.notifyItemChanged(position);
+                    }
+                }
+            }
+    );
+
     private final ActivityResultLauncher<Intent> addNoteLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -59,6 +77,14 @@ public class MainActivity extends AppCompatActivity {
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         int position = adapter.getContextMenuPosition();
         if (item.getItemId() == 1) {
+            Note note = noteList.get(position);
+            Intent intent = new Intent(this, AddNoteActivity.class);
+            intent.putExtra("position", position);
+            intent.putExtra("title", note.getTitle());
+            intent.putExtra("description", note.getDescription());
+            editNoteLauncher.launch(intent);
+            return true;
+        } else if (item.getItemId() == 2) {
             noteList.remove(position);
             adapter.notifyItemRemoved(position);
             return true;

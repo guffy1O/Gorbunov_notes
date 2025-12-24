@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class AddNoteActivity extends AppCompatActivity {
     private EditText editTitle, editDescription;
+    private int position = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,15 +19,23 @@ public class AddNoteActivity extends AppCompatActivity {
         editDescription = findViewById(R.id.editDescription);
         Button btnSave = findViewById(R.id.btnSave);
 
+        Intent intent = getIntent();
+        if (intent.hasExtra("position")) {
+            position = intent.getIntExtra("position", -1);
+            editTitle.setText(intent.getStringExtra("title"));
+            editDescription.setText(intent.getStringExtra("description"));
+        }
+
         btnSave.setOnClickListener(v -> {
             String title = editTitle.getText().toString();
             String desc = editDescription.getText().toString();
 
             if (!title.isEmpty()) {
-                Intent intent = new Intent();
-                intent.putExtra("title", title);
-                intent.putExtra("description", desc);
-                setResult(RESULT_OK, intent);
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("title", title);
+                resultIntent.putExtra("description", desc);
+                resultIntent.putExtra("position", position);
+                setResult(RESULT_OK, resultIntent);
                 finish();
             }
         });

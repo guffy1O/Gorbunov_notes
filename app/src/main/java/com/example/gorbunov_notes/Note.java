@@ -13,6 +13,7 @@ public class Note {
         this.date = date;
     }
 
+
     public int getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }

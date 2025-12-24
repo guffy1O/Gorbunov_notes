@@ -60,7 +60,8 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
 
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-            menu.add(0, 1, 0, "Удалить");
+            menu.add(0, 1, 0, "Изменить");
+            menu.add(0, 2, 0, "Удалить");
         }
     }
 }
