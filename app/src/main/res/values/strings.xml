@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Gorbunov_notes</string>
+    <string name="hint_title">Заголовок</string>
+    <string name="hint_description">Текст заметки</string>
+    <string name="btn_save">Сохранить</string>
+    <string name="default_date">00.00.0000</string>
+    <string name="add_note_content_description">Добавить новую заметку</string>
+</resources>
