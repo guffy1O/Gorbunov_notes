@@ -69,4 +69,8 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
             textDate = itemView.findViewById(R.id.textDate);
         }
     }
+
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
+    }
 }

@@ -1,7 +1,6 @@
 package com.example.gorbunov_notes;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import androidx.activity.result.ActivityResultLauncher;
@@ -9,22 +8,18 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.splashscreen.SplashScreen;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private NotesAdapter adapter;
-    private List<Note> noteList;
+    private NoteViewModel viewModel;
 
     private final ActivityResultLauncher<Intent> editNoteLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -33,15 +28,8 @@ public class MainActivity extends AppCompatActivity {
                     int position = result.getData().getIntExtra("position", -1);
                     String title = result.getData().getStringExtra("title");
                     String desc = result.getData().getStringExtra("description");
-
-                    if (position != -1) {
-                        Note oldNote = noteList.get(position);
-                        Note updatedNote = new Note(oldNote.getId(), title, desc, oldNote.getDate());
-                        noteList.set(position, updatedNote);
-                        adapter.notifyItemChanged(position);
-                        saveNotes();
-                        sendNotification("Редактирование", "Изменяем: " + updatedNote.getTitle());
-                    }
+                    viewModel.updateNote(position, title, desc);
+                    sendNotification("Обновлено", "Заметка '" + title + "' изменена");
                 }
             }
     );
@@ -54,10 +42,8 @@ public class MainActivity extends AppCompatActivity {
                     String desc = result.getData().getStringExtra("description");
                     String date = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(new Date());
 
-                    Note newNote = new Note(noteList.size(), title, desc, date);
-                    noteList.add(newNote);
-                    adapter.notifyItemInserted(noteList.size() - 1);
-                    saveNotes();
+                    int newId = viewModel.getNotes().getValue() != null ? viewModel.getNotes().getValue().size() : 0;
+                    viewModel.addNote(new Note(newId, title, desc, date));
                     sendNotification("Создано", "Заметка '" + title + "' добавлена");
                 }
             }
@@ -71,14 +57,20 @@ public class MainActivity extends AppCompatActivity {
 
         checkNotificationPermission();
 
-        loadNotes();
-
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        adapter = new NotesAdapter(noteList);
-        recyclerView.setAdapter(adapter);
         recyclerView.addItemDecoration(new SpacingItemDecoration(16));
+
+        viewModel = new ViewModelProvider(this).get(NoteViewModel.class);
+        viewModel.getNotes().observe(this, notes -> {
+            if (adapter == null) {
+                adapter = new NotesAdapter(notes);
+                recyclerView.setAdapter(adapter);
+            } else {
+                adapter.setNotes(notes);
+                adapter.notifyDataSetChanged();
+            }
+        });
 
         FloatingActionButton fabAdd = findViewById(R.id.fabAdd);
         fabAdd.setOnClickListener(v -> {
@@ -87,32 +79,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void saveNotes() {
-        SharedPreferences sharedPreferences = getSharedPreferences("GorbunovNotes", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(noteList);
-        editor.putString("notes_list", json);
-        editor.apply();
-    }
-
-    private void loadNotes() {
-        SharedPreferences sharedPreferences = getSharedPreferences("GorbunovNotes", MODE_PRIVATE);
-        Gson gson = new Gson();
-        String json = sharedPreferences.getString("notes_list", null);
-        Type type = new TypeToken<ArrayList<Note>>() {}.getType();
-        noteList = gson.fromJson(json, type);
-
-        if (noteList == null) {
-            noteList = new ArrayList<>();
-        }
-    }
-
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         int position = adapter.getContextMenuPosition();
         if (item.getItemId() == 1) {
-            Note note = noteList.get(position);
+            Note note = viewModel.getNotes().getValue().get(position);
             Intent intent = new Intent(this, AddNoteActivity.class);
             intent.putExtra("position", position);
             intent.putExtra("title", note.getTitle());
@@ -120,10 +91,8 @@ public class MainActivity extends AppCompatActivity {
             editNoteLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == 2) {
-            Note note = noteList.get(position);
-            noteList.remove(position);
-            adapter.notifyItemRemoved(position);
-            saveNotes();
+            Note note = viewModel.getNotes().getValue().get(position);
+            viewModel.deleteNote(position);
             sendNotification("Удаление", "Заметка '" + note.getTitle() + "' удалена");
             return true;
         }
@@ -141,20 +110,17 @@ public class MainActivity extends AppCompatActivity {
     private void sendNotification(String title, String message) {
         String channelId = "notes_channel";
         android.app.NotificationManager notificationManager = (android.app.NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
-
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             android.app.NotificationChannel channel = new android.app.NotificationChannel(
                     channelId, "Notes Notifications", android.app.NotificationManager.IMPORTANCE_DEFAULT);
             notificationManager.createNotificationChannel(channel);
         }
-
         androidx.core.app.NotificationCompat.Builder builder = new androidx.core.app.NotificationCompat.Builder(this, channelId)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true);
-
         notificationManager.notify((int) System.currentTimeMillis(), builder.build());
     }
 }
