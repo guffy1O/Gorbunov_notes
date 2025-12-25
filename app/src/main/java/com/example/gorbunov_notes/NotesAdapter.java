@@ -1,11 +1,11 @@
 package com.example.gorbunov_notes;
 
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
@@ -38,7 +38,19 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
 
         holder.itemView.setOnLongClickListener(v -> {
             contextMenuPosition = holder.getAdapterPosition();
-            return false;
+
+            PopupMenu popup = new PopupMenu(v.getContext(), v, 0, androidx.appcompat.R.attr.popupMenuStyle, 0);
+
+            popup.getMenu().add(0, 1, 0, "Изменить");
+            popup.getMenu().add(0, 2, 0, "Удалить");
+            popup.setOnMenuItemClickListener(item -> {
+                if (v.getContext() instanceof android.app.Activity) {
+                    ((android.app.Activity) v.getContext()).onContextItemSelected(item);
+                }
+                return true;
+            });
+            popup.show();
+            return true;
         });
     }
 
@@ -47,7 +59,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
         return notes.size();
     }
 
-    public static class NoteViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
+    public static class NoteViewHolder extends RecyclerView.ViewHolder {
         TextView textTitle, textDescription, textDate;
 
         public NoteViewHolder(@NonNull View itemView) {
@@ -55,13 +67,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
             textTitle = itemView.findViewById(R.id.textTitle);
             textDescription = itemView.findViewById(R.id.textDescription);
             textDate = itemView.findViewById(R.id.textDate);
-            itemView.setOnCreateContextMenuListener(this);
-        }
-
-        @Override
-        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-            menu.add(0, 1, 0, "Изменить");
-            menu.add(0, 2, 0, "Удалить");
         }
     }
 }

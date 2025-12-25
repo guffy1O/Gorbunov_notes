@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="@dimen/margin_standard">
+    android:background="@color/md_theme_background"
+    android:paddingLeft="@dimen/margin_standard"
+    android:paddingRight="@dimen/margin_standard"
+    android:paddingBottom="@dimen/margin_standard">
 
     <EditText
         android:id="@+id/editTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
         android:hint="@string/hint_title"
         android:inputType="textCapSentences"
         android:textSize="@dimen/text_size_header"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:padding="16dp"
+        android:textColor="@color/black"
+        android:background="@drawable/rounded_edittext"
+        android:autofillHints="none" />
 
     <EditText
         android:id="@+id/editDescription"
@@ -22,14 +31,20 @@
         android:gravity="top"
         android:hint="@string/hint_description"
         android:inputType="textMultiLine|textCapSentences"
-        android:layout_marginTop="@dimen/margin_standard"
-        android:background="@null" />
+        android:layout_marginTop="12dp"
+        android:padding="16dp"
+        android:textColor="@color/black"
+        android:background="@drawable/rounded_edittext"
+        android:autofillHints="none" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSave"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="64dp"
         android:text="@string/btn_save"
-        android:layout_marginTop="@dimen/margin_standard" />
+        android:layout_marginTop="16dp"
+        android:textColor="@color/black"
+        app:backgroundTint="@color/md_theme_surface"
+        app:cornerRadius="12dp" />
 
 </LinearLayout>

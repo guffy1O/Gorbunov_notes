@@ -1,9 +1,28 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Gorbunov_notes" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+<resources>
+    <style name="Theme.Gorbunov_notes" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/md_theme_background</item>
+        <item name="colorPrimary">@color/md_theme_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
+        <item name="colorSurface">@color/md_theme_surface</item>
+        <item name="colorOutlineVariant">@color/md_theme_outlineVariant</item>
+        <item name="colorOnSurface">@color/black</item>
+        <item name="colorOnSurfaceVariant">@color/black</item>
+        <item name="colorOutline">@color/black</item>
+
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="popupMenuStyle">@style/Widget.App.PopupMenu</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.App.PopupMenu</item>
     </style>
 
-    <style name="Theme.Gorbunov_notes" parent="Base.Theme.Gorbunov_notes" />
+    <style name="Widget.App.PopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@drawable/rounded_popup</item>
+    </style>
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/md_theme_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.Gorbunov_notes</item>
+    </style>
 </resources>
