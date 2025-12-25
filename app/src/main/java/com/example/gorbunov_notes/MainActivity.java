@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
                         noteList.set(position, updatedNote);
                         adapter.notifyItemChanged(position);
                         saveNotes();
+                        sendNotification("Редактирование", "Изменяем: " + updatedNote.getTitle());
                     }
                 }
             }
@@ -57,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
                     noteList.add(newNote);
                     adapter.notifyItemInserted(noteList.size() - 1);
                     saveNotes();
+                    sendNotification("Создано", "Заметка '" + title + "' добавлена");
                 }
             }
     );
@@ -66,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        checkNotificationPermission();
 
         loadNotes();
 
@@ -116,11 +120,41 @@ public class MainActivity extends AppCompatActivity {
             editNoteLauncher.launch(intent);
             return true;
         } else if (item.getItemId() == 2) {
+            Note note = noteList.get(position);
             noteList.remove(position);
             adapter.notifyItemRemoved(position);
             saveNotes();
+            sendNotification("Удаление", "Заметка '" + note.getTitle() + "' удалена");
             return true;
         }
         return super.onContextItemSelected(item);
+    }
+
+    private void checkNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
+    }
+
+    private void sendNotification(String title, String message) {
+        String channelId = "notes_channel";
+        android.app.NotificationManager notificationManager = (android.app.NotificationManager) getSystemService(android.content.Context.NOTIFICATION_SERVICE);
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            android.app.NotificationChannel channel = new android.app.NotificationChannel(
+                    channelId, "Notes Notifications", android.app.NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        androidx.core.app.NotificationCompat.Builder builder = new androidx.core.app.NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true);
+
+        notificationManager.notify((int) System.currentTimeMillis(), builder.build());
     }
 }
