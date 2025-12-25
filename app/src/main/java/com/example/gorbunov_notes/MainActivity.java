@@ -1,6 +1,7 @@
 package com.example.gorbunov_notes;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import androidx.activity.result.ActivityResultLauncher;
@@ -10,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,7 +23,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private NotesAdapter adapter;
-    private List<Note> noteList = new ArrayList<>();
+    private List<Note> noteList;
 
     private final ActivityResultLauncher<Intent> editNoteLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -34,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
                         Note updatedNote = new Note(oldNote.getId(), title, desc, oldNote.getDate());
                         noteList.set(position, updatedNote);
                         adapter.notifyItemChanged(position);
+                        saveNotes();
                     }
                 }
             }
@@ -50,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
                     Note newNote = new Note(noteList.size(), title, desc, date);
                     noteList.add(newNote);
                     adapter.notifyItemInserted(noteList.size() - 1);
+                    saveNotes();
                 }
             }
     );
@@ -58,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        loadNotes();
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -71,6 +79,27 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, AddNoteActivity.class);
             addNoteLauncher.launch(intent);
         });
+    }
+
+    private void saveNotes() {
+        SharedPreferences sharedPreferences = getSharedPreferences("GorbunovNotes", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(noteList);
+        editor.putString("notes_list", json);
+        editor.apply();
+    }
+
+    private void loadNotes() {
+        SharedPreferences sharedPreferences = getSharedPreferences("GorbunovNotes", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = sharedPreferences.getString("notes_list", null);
+        Type type = new TypeToken<ArrayList<Note>>() {}.getType();
+        noteList = gson.fromJson(json, type);
+
+        if (noteList == null) {
+            noteList = new ArrayList<>();
+        }
     }
 
     @Override
@@ -87,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (item.getItemId() == 2) {
             noteList.remove(position);
             adapter.notifyItemRemoved(position);
+            saveNotes();
             return true;
         }
         return super.onContextItemSelected(item);
